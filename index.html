@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tech Talks Event</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        .search-container {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .search-container input[type="text"] {
+            width: 70%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease;
+        }
+        .search-container input[type="text"]:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+        .schedule {
+            display: grid;
+            gap: 25px;
+        }
+        .talk-item, .break-item {
+            background-color: #e9f5ff;
+            border: 1px solid #b3d9ff;
+            padding: 20px;
+            border-radius: 8px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            position: relative;
+        }
+        .talk-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        .break-item {
+            background-color: #f8f9fa;
+            border-color: #dee2e6;
+            text-align: center;
+            font-weight: bold;
+            color: #495057;
+            padding: 15px;
+        }
+        .time {
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 10px;
+            display: block;
+        }
+        .talk-title {
+            font-size: 22px;
+            color: #34495e;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        .speakers {
+            font-style: italic;
+            color: #555;
+            margin-bottom: 8px;
+        }
+        .category {
+            font-size: 14px;
+            background-color: #007bff;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-right: 5px;
+            margin-bottom: 10px;
+        }
+        .description {
+            line-height: 1.6;
+            color: #666;
+        }
+        .no-results {
+            text-align: center;
+            color: #777;
+            font-size: 18px;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Tech Talks Event Schedule</h1>
+
+        <div class="search-container">
+            <input type="text" id="categorySearch" placeholder="Search by category (e.g., AI, Cloud)">
+        </div>
+
+        <div class="schedule" id="scheduleContainer">
+            <!-- Schedule items will be rendered here by JavaScript -->
+        </div>
+    </div>
+
+    <script>
+        const talksData = [
+            {
+                title: "Advancements in AI/ML",
+                speakers: ["Dr. Emily Chen"],
+                category: ["AI", "Machine Learning"],
+                description: "Exploring the latest breakthroughs in artificial intelligence and machine learning, from deep learning to reinforcement learning.",
+            },
+            {
+                title: "Cloud Native Architectures",
+                speakers: ["John Doe", "Jane Smith"],
+                category: ["Cloud", "DevOps", "Architecture"],
+                description: "A comprehensive look into designing and implementing scalable cloud-native applications using Kubernetes and serverless technologies.",
+            },
+            {
+                title: "Frontend Frameworks in 2026",
+                speakers: ["Alice Johnson"],
+                category: ["Frontend", "Web Development"],
+                description: "An overview of the most popular and emerging frontend frameworks, comparing their features, performance, and use cases.",
+            },
+            {
+                title: "Cybersecurity Best Practices",
+                speakers: ["Bob Williams"],
+                category: ["Security", "Cybersecurity"],
+                description: "Essential strategies and tools for securing applications and data in today's evolving threat landscape.",
+            },
+            {
+                title: "Data Engineering Pipelines",
+                speakers: ["Maria Garcia"],
+                category: ["Data Engineering", "Big Data"],
+                description: "Building robust and efficient data pipelines for processing and analyzing large datasets, focusing on real-time and batch processing.",
+            },
+            {
+                title: "Quantum Computing Fundamentals",
+                speakers: ["Dr. Alex Lee", "Dr. Sarah Kim"],
+                category: ["Quantum Computing", "Future Tech"],
+                description: "An introduction to the principles of quantum mechanics and their application in quantum computing, exploring its potential and challenges.",
+            },
+        ];
+
+        const eventStartTime = new Date();
+        eventStartTime.setHours(10, 0, 0, 0); // Set event start to 10:00 AM today
+
+        const talkDuration = 60; // minutes
+        const transitionDuration = 10; // minutes
+        const lunchDuration = 60; // minutes
+
+        function formatTime(date) {
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            const formattedHours = hours % 12 === 0 ? 12 : hours % 12;
+            const formattedMinutes = minutes < 10 ? '0' + minutes : minutes;
+            return `${formattedHours}:${formattedMinutes} ${ampm}`;
+        }
+
+        function calculateSchedule() {
+            let currentTime = new Date(eventStartTime);
+            const schedule = [];
+
+            for (let i = 0; i < talksData.length; i++) {
+                const talk = talksData[i];
+                const startTime = new Date(currentTime);
+                const endTime = new Date(currentTime.getTime() + talkDuration * 60 * 1000);
+
+                schedule.push({
+                    type: 'talk',
+                    ...talk,
+                    startTime: formatTime(startTime),
+                    endTime: formatTime(endTime),
+                    rawStartTime: startTime.getTime(),
+                });
+
+                currentTime = new Date(endTime);
+
+                // Add transition after talk, except after the last talk
+                if (i < talksData.length - 1) {
+                    schedule.push({
+                        type: 'transition',
+                        startTime: formatTime(currentTime),
+                        endTime: formatTime(new Date(currentTime.getTime() + transitionDuration * 60 * 1000)),
+                        rawStartTime: currentTime.getTime(),
+                    });
+                    currentTime = new Date(currentTime.getTime() + transitionDuration * 60 * 1000);
+                }
+
+                // Insert lunch break after the 3rd talk
+                if (i === 2) {
+                    const lunchStartTime = new Date(currentTime);
+                    const lunchEndTime = new Date(currentTime.getTime() + lunchDuration * 60 * 1000);
+                    schedule.push({
+                        type: 'break',
+                        name: 'Lunch Break',
+                        startTime: formatTime(lunchStartTime),
+                        endTime: formatTime(lunchEndTime),
+                        rawStartTime: lunchStartTime.getTime(),
+                    });
+                    currentTime = new Date(lunchEndTime);
+                }
+            }
+            return schedule;
+        }
+
+        const fullSchedule = calculateSchedule();
+        const scheduleContainer = document.getElementById('scheduleContainer');
+        const categorySearchInput = document.getElementById('categorySearch');
+
+        function renderSchedule(filteredSchedule) {
+            scheduleContainer.innerHTML = ''; // Clear current schedule
+            if (filteredSchedule.length === 0) {
+                scheduleContainer.innerHTML = '<div class="no-results">No talks found matching your search.</div>';
+                return;
+            }
+
+            filteredSchedule.forEach(item => {
+                let html = '';
+                if (item.type === 'talk') {
+                    html = `
+                        <div class="talk-item">
+                            <span class="time">${item.startTime} - ${item.endTime}</span>
+                            <h2 class="talk-title">${item.title}</h2>
+                            <p class="speakers">Speakers: ${item.speakers.join(', ')}</p>
+                            <div>
+                                ${item.category.map(cat => `<span class="category">${cat}</span>`).join('')}
+                            </div>
+                            <p class="description">${item.description}</p>
+                        </div>
+                    `;
+                } else if (item.type === 'break') {
+                    html = `
+                        <div class="break-item">
+                            <span class="time">${item.startTime} - ${item.endTime}</span>
+                            <span>${item.name}</span>
+                        </div>
+                    `;
+                } else if (item.type === 'transition') {
+                    // Transitions are not displayed as separate blocks in the final output as per user's output spec,
+                    // but they are crucial for time calculation.
+                    // If you want to visually show transitions, uncomment below:
+                    /*
+                    html = `
+                        <div class="break-item">
+                            <span class="time">${item.startTime} - ${item.endTime}</span>
+                            <span>Transition</span>
+                        </div>
+                    `;
+                    */
+                }
+                scheduleContainer.innerHTML += html;
+            });
+        }
+
+        // Initial render of the full schedule, only displaying talk and break items
+        renderSchedule(fullSchedule.filter(item => item.type === 'talk' || item.type === 'break'));
+
+        categorySearchInput.addEventListener('input', (event) => {
+            const searchTerm = event.target.value.toLowerCase();
+            const filteredTalksAndBreaks = fullSchedule.filter(item => {
+                if (item.type === 'talk') {
+                    // Check if any category matches the search term
+                    return item.category.some(cat => cat.toLowerCase().includes(searchTerm));
+                }
+                // Always include breaks, regardless of search term
+                return item.type === 'break';
+            });
+            renderSchedule(filteredTalksAndBreaks);
+        });
+
+    </script>
+</body>
+</html>
